@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>CLOUDRILE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/assets/css/bootstrap-icons.css') }}">
+    <link rel="shortcut icon"  type="image/x-icon"  href="\static\assets\images\cloud_14412 (1).ico" >
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/assets/css/styles_main.css') }}">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+</head>
+<body>
+<style>
+    .hide {
+        display: none;
+    }
+
+    .class_46:hover {
+        background-color: rgb(125, 125, 125);
+        color: white;
+    }
+
+    .drop-zone:hover {
+        background-color: #ccc;
+        border: dotted 4px red;
+    }
+
+    .drop-zone {
+        height: 200px;
+        border: dotted 4px #444;
+        border-radius: 10px;
+        background-color: #eee;
+        margin: 10px;
+        padding: 10px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .drop-zone-highlight {
+        background-color: #eed5d5;
+    }
+</style>
+<div class="class_1">
+
+    <div class="class_4">
+        <h1 class="class_5">
+            CLOUDRELI
+        </h1>
+    </div>
+    <div class="class_7">
+        <img src="{{avatar_url}}" class="class_8">
+        <div class="class_9">
+            <span class="username">{{ username }}</span> <a class="class_52" href="{{ url_for('logout')}}"
+                                                            onclick="table.logout()"
+                                                            style="text-decoration: none; color: white;">Çıkış</a>
+        </div>
+    </div>
+</div>
+<div class="class_10">
+    <div class="class_11">
+        <button onclick="show_new_folder()" class="class_12">
+            + Klasör Oluştur
+        </button>
+        <div class="class_13">
+            <div class="class_9">
+                Depolama Alanı
+            </div>
+            <div class="class_14">
+                <div class="js-drive-space-percent class_15" style="{{ 'width: {}%'.format(current_space_as_percent) }}"></div>
+                    <div class="percentile"></div>
+            </div>
+            <div class="js-drive-space-text class_9">
+                 {{ '%0.2f'|format(current_space/1000000) }} MB / {{ max_space/1000000 }} MB
+            </div>
+        </div>
+        <div id="MY DRIVE" onclick="mode.set(this.id);table.change_folder_by_id(0)" class="class_16">
+            <a href="{{ url_for('home') }}" class="bi bi-cloud-arrow-up-fill class_17">
+					<span>
+						Drive'ım
+					</span></a>
+
+        </div>
+        <div id="TRASH" onclick="mode.set(this.id)" class="class_18">
+            <a href="{{ url_for('thrashs') }}" class="bi bi-trash3-fill class_17">
+				<span>
+					Çöp Kutusu
+				</span> </a>
+
+        </div>
+    </div>
+    <div class="class_22">
+        <div id="breadcrumbs" class="class_23">
+
+            <!--
+            <div class="class_25"  >
+                My First Folder
+            </div>
+            <div class="class_26"  >
+                My Second Folder
+            </div>
+            -->
+           <style>
+             th {
+                 text-align: left;
+                }
+            </style>
+        </div>
+        <h1 class="js-mode-title class_27">
+            Drive'ım
+        </h1>
+        <div class="class_28">
+            <table oncontextmenu="submenu.show(event)" class="item_class_0 class_29" style="font-size:13px">
+                <thead>
+
+                <tr>
+                    <th scope="col">
+                        #
+                    </th>
+                    <th>
+                        Klasör Adı
+                    </th>
+                    <th scope="col">
+                        Dosya Tipi
+                    </th>
+
+                    <th scope="col">
+                        Güncellenme Tarihi
+                    </th>
+                    <th scope="col">
+                        Dosya Boyutu
+                    </th>
+                    <th scope="col">
+
+                    </th>
+                </tr>
+                {% for folder in folders %}
+                <tr>
+                    <td>
+                        {% if folder[7] %}
+                        <a href="{{ url_for('folders', folder_id=folder[0]) }}" style="color: #16a095;">
+                            <i class="fa-solid fa-folder"></i>
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('folders', folder_id=folder[0]) }}" style="color: #16a095;">
+                            <i class="fa-regular fa-folder"></i>
+                        </a>
+                        {% endif %}
+                    </td>
+                    <td>{{ folder[1] }}</td>
+                    <td>klasör</td>
+                    <td>{{ folder[2] }}</td>
+                    <td></td>
+                    <td class="icon-cell">
+                        <!--
+                                       Eğer kullanıcı silme işlemini onaylarsa thrash fonksiyonunu çağır
+                                İptal ederse hiçbir şey yapma
+                                            -->
+                        <a href="javascript:void(0);" class="fa-regular fa-trash-can" style="color: #16a095;"
+                           onclick="confirmDelete('{{ folder[0] }}')"></a>
+                        <i class="fa-regular fa-pen-to-square" style="color: #16a095;"></i>
+                        <!-- <i class="fa-solid fa-download" style="color: #16a095;"></i> -->
+                        <i class="fa-solid fa-download" style="color: #16a095;"></i>
+                    </td>
+                </tr>
+
+                <script>
+                    function confirmDelete(folderId) {
+                        var result = confirm("Emin misin?");
+
+                        if (result) {
+                            // Kullanıcı OK düğmesine tıkladı, silme işlemi yapabilirsiniz
+                            window.location.href = "{{ url_for('move_trash', folder_id='') }}" + folderId;
+                        } else {
+                            // Kullanıcı İptal düğmesine tıkladı, hiçbir şey yapmayabilirsiniz
+                        }
+                    }
+                </script>
+
+                {% endfor %}
+
+                {% for file in files %}
+                <tr>
+                    <td>
+                        <a href="#" style="color: #16a095;">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </a>
+
+                    </td>
+                    <td>{{ file[1] }}</td>
+                    <td>{{ file[3] }}</td>
+                    <td>{{ file[6] }}</td>
+                    <td>{{ '%0.2f'|format(file[2]/1000000) }} MB </td>
+                    <td class="icon-cell">
+                        <!--
+                                       Eğer kullanıcı silme işlemini onaylarsa thrash fonksiyonunu çağır
+                                İptal ederse hiçbir şey yapma
+                                            -->
+                        <a href="javascript:void(0);" class="fa-regular fa-trash-can" style="color: #16a095;"
+                           onclick="confirmDeleteFile('{{ file[0] }}')"></a>
+                        <a href="{{ url_for('view_file', folder_id=file[8], file_name=file[1]) }}" style="color: #16a095;">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </a>
+                        <a href="{{ url_for('download_file', folder_id=file[8], file_name=file[1]) }}" style="color: #16a095;">
+                            <i class="fa-solid fa-download"></i>
+                        </a>
+
+
+
+                    </td>
+                </tr>
+
+                <script>
+                    function confirmDeleteFile(fileID) {
+                        var result = confirm("Emin misin?");
+
+                        if (result) {
+                            // Kullanıcı OK düğmesine tıkladı, silme işlemi yapabilirsiniz
+                            window.location.href = "{{ url_for('delete_file', file_id='') }}" + fileID;
+                        } else {
+                            // Kullanıcı İptal düğmesine tıkladı, hiçbir şey yapmayabilirsiniz
+                        }
+                    }
+                </script>
+
+                {% endfor %}
+
+                </thead>
+
+                <tbody id="table-body" ondblclick="table.change_folder(event)" onclick="table.select(event)">
+
+                </tbody>
+            </table>
+        </div>
+        <div class="class_41" style="display: flex;">
+            <button onclick="table.prev()" class="class_42" style="min-width:100px">
+                Önceki
+            </button>
+            <span class="js-page-number" style="text-align:center;width: 100%;display: inline-block;">Sayfa 1</span>
+            <button onclick="table.next()" class="class_43" style="min-width:100px">
+                Sonraki
+            </button>
+            <div class="class_44">
+            </div>
+        </div>
+
+    </div>
+    <div class="class_47">
+        <h1 class="class_48">
+            Dosya Detayları
+        </h1>
+        <div class="class_28">
+        </div>
+        <div class="js-file-info hide class_49">
+            <table class="item_class_2 class_50">
+
+                <tbody>
+                <tr>
+                    <th>
+                        Dosya:
+                    </th>
+                    <td class="file_name">
+
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        Tip:
+                    </th>
+
+                    <td class="type">
+
+                    </td>
+
+                </tr>
+                <tr>
+                    <th>
+                        Boyutu:
+                    </th>
+
+                    <td class="size">
+
+                    </td>
+
+                </tr>
+                <tr>
+                    <th>
+                        Eklenme Tarihi:
+                    </th>
+                    <td class="date_created">
+
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        Düzenlenme Tarihi:
+                    </th>
+                    <td class="date_updated">
+
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <label class="drop-zone" ondrop="upload.drop(event)" ondragover="upload.dragOver(event)"
+               ondragleave="upload.dropZone.removeHighlight()">
+            <i class="bi bi-cloud-arrow-up-fill class_6"></i>
+            Dosyaları buraya sürükleyip bırakın veya yüklemek için tıklayın
+            <form method=post action="{{ url_for('upload_file', folder_id=folder_id) }}" enctype=multipart/form-data>
+                <input onchange="this.form.submit()" type="file" class="hide" name="file" multiple>
+            </form>
+            <div class="js-prog-holder hide class_13"
+                 style="position: static;height: auto;background-color: transparent;">
+
+                <div class="class_14">
+                    <div class="js-prog class_15"></div>
+                </div>
+                <div class="js-prog-text class_9">
+                    50%
+                </div>
+                <button onclick="upload.cancel()" class="class_42">
+                    Yüklemeyi iptal et
+                </button>
+            </div>
+
+        </label>
+    </div>
+</div>
+
+<!--modals-->
+
+<!-- start new folder modal-->
+<div id="create_folder_modal" class="js-new-folder hide" onclick="this.classList.add('hide')"
+     style="position:fixed;top:0px;left:0px;width:100vw;height:100vh;background-color:#00000088">
+    <div style="transform: translate(-50%,-50%);position:absolute;left:50%;top:50%;width:100%;max-width: 400px;min-height: 200px;background-color: white;padding:10px;text-align:center;">
+        <div onclick="" style="text-align:right">
+            <button class="class_42" style="padding-top:4px;padding-bottom:4px;background-color: red;">X</button>
+        </div>
+
+        <h3><i class="bi bi-folder-fill"></i> Yeni Klasör</h3>
+        <form action="{{ url_for('create_folder') }}" method="POST">
+            <input class="js-new-folder-input" type="text" style="width:100%;padding:1em;border: solid thin #ccc;"
+                   name="folder_name">
+            <button type="submit" class="class_42" style="width:100px">Oluştur</button>
+        </form>
+    </div>
+</div>
+<!-- end new folder modal-->
+
+<!-- start share modal-->
+<style>
+
+    .access-email .email {
+        flex: 1;
+        padding-left: 5px;
+    }
+
+    .access-email .close {
+        flex: 1;
+        max-width: 50px;
+        padding: 2px;
+        text-align: center;
+        cursor: pointer;
+        background-color: #ffb6b6;
+        color: #b50000;
+    }
+
+    .access-email {
+        display: flex;
+        background-color: #eee;
+        margin-top: 1px;
+        margin-bottom: 1px;
+        align-items: center;
+    }
+
+    .access-email-input button {
+        flex: 1;
+        max-width: 50px;
+        cursor: pointer;
+    }
+
+    .access-email-input input {
+        flex: 1;
+    }
+
+    .access-email-input {
+        display: flex;
+    }
+</style>
+<div class="js-share hide" onclick="this.classList.add('hide')"
+     style="position:fixed;top:0px;left:0px;width:100vw;height:100vh;background-color:#00000088">
+    <div onclick="event.stopPropagation()"
+         style="transform: translate(-50%,-50%);position:absolute;left:50%;top:50%;width:100%;max-width: 400px;min-height: 200px;background-color: white;padding:10px;text-align:center;">
+        <div onclick="document.querySelector('.js-share').classList.add('hide')" style="text-align:right">
+            <button class="class_42" style="padding-top:4px;padding-bottom:4px;background-color: red;">X</button>
+        </div>
+        <h3><i class="bi bi-share-fill"></i> Share File</h3>
+
+        <div class="js-share-filename" style="padding:10px;background-color:#eee"></div>
+
+        <div style="text-align:left;padding: 10px;border: solid thin #eee;">
+            <label>
+                <input class="radio js-share-mode-0" type="radio" value="0" name="share"> Dont Share
+            </label><br>
+            <label>
+                <input class="radio js-share-mode-2" type="radio" value="2" name="share"> Share to public
+            </label><br>
+            <label>
+                <input class="radio js-share-mode-1" type="radio" value="1" name="share"> Share to specific people
+            </label><br>
+            <div style="padding:10px;border:solid thin #eee;">
+                <small>Type an email and click add:</small><br>
+                <div class="access-email-input">
+                    <input class="js-access-email-input" type="text" name="">
+                    <button onclick="share.add(this.parentNode.querySelector('.js-access-email-input').value.trim())">
+                        Add
+                    </button>
+                </div>
+                <div class="js-access-email-holder" style="max-height: 100px;overflow-y: auto;">
+
+                </div>
+            </div>
+            <br>
+
+            <label>File link:</label><br>
+            <input class="js-share-link" value="" type="text" style="width:100%;padding:1em;border: solid thin #ccc;"
+                   name="link">
+
+        </div>
+        <button onclick="action.share_file(this)" class="class_42" style="width:100px">Save</button>
+    </div>
+</div>
+<!-- end share modal-->
+
+
+</body>
+</html>
+
+<script>
+    function show_new_folder() {
+        let box = document.getElementById('create_folder_modal');
+        box.classList.remove("hide");
+        box.querySelector("input").value = "";
+        box.querySelector("input").focus();
+    }
+
+</script>

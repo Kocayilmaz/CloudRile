@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<head>
+        <meta charset="utf-8">
+        <title>CloudRile</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>my drive preview page</title>
+	<link rel="stylesheet" type="text/css" href="assets/css/bootstrap-icons.css">
+	<link rel="stylesheet" type="text/css" href="assets/css/styles.css">
+</head>
+<body>
+
+	<style>
+		
+		.hide{
+			display: none;
+		}
+
+		.class_46:hover{
+			background-color: rgb(125, 125, 125);
+			color: white;
+		}
+
+		.drop-zone:hover{
+			background-color: #ccc;
+			border: dotted 4px red;
+		}
+
+		.drop-zone{
+			height:200px;
+			border: dotted 4px #444;
+			border-radius: 10px;
+			background-color: #eee;
+			margin: 10px;
+			padding: 10px;
+			text-align: center;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+		}
+
+		.drop-zone-highlight{
+			background-color: #eed5d5;
+		}
+	</style>
+	<div class="class_1" >
+		<div class="class_2" >
+			<img src="assets/images/letter-o-shuriken-gradient-color-logo-modern_487879-654.jpg" class="class_3" >
+		</div>
+		<div class="class_4" >
+			<h1 class="class_5"  >
+				MY DRIVE
+				<i class="bi bi-cloud-arrow-up-fill class_6"></i>
+			</h1>
+		</div>
+		<div class="class_7" >
+			<img src="assets/images/beautiful-sincere-happy-girl-smiling-laughing_176420-9693.jpg" class="class_8" >
+			<div class="class_9"  >
+				Hi <span class="username">User</span> <a href="#" onclick="table.logout()">[logout]</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="class_28" >
+		<table oncontextmenu="submenu.show(event)" class="item_class_0 class_29" style="font-size:13px">
+			
+			<thead >
+				
+				<tr >
+					<th scope="col" >
+						#
+					</th>
+					<th>
+						File Name
+					</th>
+					<th scope="col" >
+					</th>
+					
+					<th scope="col" >
+						Type
+					</th>
+
+					<th scope="col" >
+						Updated
+					</th>
+					<th scope="col" >
+						Size
+					</th>
+					<th scope="col" >
+						Action
+					</th>
+				</tr>
+				
+			</thead>
+			
+			<tbody id="table-body" >
+
+			</tbody>
+		</table>
+	</div>
+
+	<div class="js-preview-card" style="padding:10px;text-align:center;">
+		<i class="bi bi-eye"></i> Preview unavailable
+	</div>
+</body>
+</html>
+
+<script>
+	
+	var LOGGED_IN = false;
+	var USERNAME = false;
+	var FOLDER_ID = 0;
+	var tbody = document.querySelector("#table-body");
+
+	const action = {
+
+		uploading: false,
+		cancelled: false,
+
+		get_file: function()
+		{
+			let params = get_url_params();
+			tbody.innerHTML = `<tr><td colspan="10" style="text-align:center">Loading file... please wait!</td></tr>`;
+
+			let obj = {};
+			obj.data_type = 'preview_file';
+			obj.slug = typeof params['id'] === 'undefined' ? "" : params['id'];
+			action.send(obj);
+		},
+
+		send: function(obj)
+		{
+
+			if(action.uploading){
+				alert("Please wait for the upload to complete!");
+				return;
+			}
+
+			action.uploading = true;
+			action.cancelled = false;
+			let myform = new FormData();
+			
+			for (key in obj) {
+				myform.append(key,obj[key]);
+			}
+
+			let xhr = new XMLHttpRequest();
+
+			xhr.addEventListener('error',function(e){
+				alert("An error occured! Please check your connection");
+			});
+
+			xhr.addEventListener('readystatechange',function(){
+
+				if(xhr.readyState == 4)
+				{
+					if(xhr.status == 200)
+					{
+						
+						action.handle_result(xhr.responseText)
+
+					}else{
+						console.log(xhr.responseText);
+						alert("An error occured! Please try again later");
+					}
+
+					action.uploading = false;
+				}
+			});
+
+			xhr.open('post','app.py',true);
+			xhr.send(myform);
+
+		},
+
+		handle_result: function(result)
+		{
+			console.log(result);
+			let obj = JSON.parse(result);
+			
+			//display usename
+			if(!USERNAME){
+				USERNAME = obj.username;
+				document.querySelector(".username").innerHTML = obj.username;
+			}
+
+			if(obj.success)
+			{
+				//populate table
+				tbody.innerHTML = "";
+
+				let tr = document.createElement('tr');
+				tr.setAttribute('id','tr_0');
+				tr.setAttribute('type','file');
+
+				let star = '';
+				star = '<i class="bi bi-star class_34"></i>';
+				if(obj.row.favorite == 1)
+					star = '<i class="bi bi-star-fill class_34" style="color:rgb(255, 21, 226)"></i>';
+			
+				let download_link = "";
+				download_link = `
+				<a href="download.php?id=${obj.row.id}">
+					<i class="bi bi-cloud-download-fill class_34"></i>
+				</a>`;
+
+
+				tr.innerHTML = `
+					<td>${obj.row.icon}</td>
+					<td style="max-width: 200px;" >${obj.row.file_name}</td>
+					<td>${star}</td>
+					<td style="max-width: 200px;">${obj.row.file_type}</td>
+					<td>${obj.row.date_updated}</td>
+					<td>${obj.row.file_size}</td>
+					<td>
+						${download_link}
+					</td>
+				`;
+
+				tbody.appendChild(tr);
+
+				//display a preview if possible
+				let previewable = ['Image','Mp4 Video','Mp3 Audio'];
+				if(previewable.includes(obj.row.file_type))
+				{
+					let str = "";
+					if(obj.row.file_type == 'Image')
+					{
+						str = `<img src="${obj.row.file_path}" style="width:90%;">`;
+					}else
+					if(obj.row.file_type == 'Mp4 Video')
+					{
+						str = `
+						<video controls style="width:90%;">
+							<source src="${obj.row.file_path}">
+						</video>`;
+					}else
+					if(obj.row.file_type == 'Mp3 Audio')
+					{
+						str = `
+						<audio controls style="width:90%;">
+							<source src="${obj.row.file_path}">
+						</audio>`;
+					}
+
+					document.querySelector('.js-preview-card').innerHTML = str;
+				}
+
+			}else{
+				tbody.innerHTML = `<tr><td colspan="10" style="text-align:center">No files found!</td></tr>`;
+			}
+
+
+		},	
+
+	};
+
+	function get_url_params()
+	{
+		let url = window.location.search;
+
+		url = url.trim();
+		url = url.split('?');
+		url = typeof url[1] === 'undefined' ? url[0] : url[1];
+		
+		url = url.split('&');
+		let params = {};
+		for (var i = 0; i < url.length; i++) {
+			
+			let parts = url[i].split("=");
+			let key = parts[0];
+			let value = typeof parts[1] === 'undefined' ? true : parts[1];
+
+			params[key] = value;
+		}
+
+		return params;
+	}
+
+	action.get_file();
+
+</script>

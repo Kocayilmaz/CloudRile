@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>CLOUDRELI</title>
+    <link rel="shortcut icon" type="image/x-icon" href="\static\assets\images\cloud_14412 (1).ico">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/stylesheets/style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/stylesheets/bootstrap-grid.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="container" id="container" style="max-width: 800px">
+    <div class="form-container sign-up-container">
+        <form action="{{ url_for('register') }}" method="post" autocomplete="off" id="register-form">
+            <h1>Hesap Oluştur</h1>
+            <div class="social-container">
+
+                <a href="{{url_for('githublogin')}}" class="social"><i class="fa-brands fa-github fa-xl"></i></a>
+                <a href="{{url_for('glogin')}}" class="social"><i class="fa-brands fa-google-plus-g fa-xl"></i></a>
+
+            </div>
+            <span>ya da e-posta ile kayıt ol</span>
+
+            <div class="row">
+                <div class="col-sm-1" style="padding-top: 10px">
+                    <span class="input-group-addon"><i class="fa fa-envelope fa" aria-hidden="true"></i></span>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" name="email" id="email" placeholder="Emailinizi giriniz"
+                           required/>
+                    <div id="email-error" class="error-message"></div>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="col-sm-1" style="padding-top: 10px">
+                    <span class="input-group-addon"><i class="fa fa-lock fa-lg" aria-hidden="true"></i></span>
+                </div>
+                <div class="col">
+                    <div class="input-group">
+                        <input type="password" class="form-control" name="password" placeholder="Şifrenizi giriniz"
+                               id="password"
+                               required placeholder="Şifrenizi Giriniz"/>
+                        <div id="password-error" class="error-message"></div>
+                    </div>
+                </div>
+            </div>
+            <input type="submit" value="Kayıt Ol" class="form-control btn btn-primary " name="">
+
+        </form>
+    </div>
+    <div class="form-container sign-in-container">
+        <form class="form-group" action="{{ url_for('login') }}" method="post" id="login-form">
+            <h1>Giriş Yap</h1>
+            <div class="social-container">
+                <a href="{{url_for('githublogin')}}" class="social"><i class="fa-brands fa-github fa-xl"></i></a>
+                <a href="{{url_for('glogin')}}" class="social"><i class="fa-brands fa-google-plus-g fa-xl"></i></a>
+            </div>
+            <span>ya da hesabını kullan</span>
+            <input type="email" class="form-control" name="email" placeholder="E-posta" id="login-email" required/>
+            <div id="login-email-error" class="error-message"></div> <!-- Ekledim -->
+            <input type="password" class="form-control" name="password" placeholder="Şifre" id="login-password" required>
+            <div id="login-password-error" class="error-message"></div>
+            <a href="{{url_for('forgot_password')}}">Şifreni mi unuttun? Buraya tıkla!</a>
+            <input type="submit" value="Giriş" class="form-control btn btn-success " name="">
+            {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% endwith %}
+        </form>
+
+        </form>
+    </div>
+    <div class="overlay-container">
+        <div class="overlay">
+            <div class="overlay-panel overlay-left">
+                <h1>Tekrardan Hoşgeldin!</h1>
+                <p>İçeriklerinize kolayca erişin!</p>
+                <button type="submit" class="ghost" id="signIn">Giriş Yap</button>
+
+            </div>
+            <div class="overlay-panel overlay-right">
+                <h1>Tanışıyor muyuz?</h1>
+                <p>Daha önce kayıt olmadıysan bilgilerini gir ve depolamaya başla. </p>
+                <button class="ghost" id="signUp">Kayıt ol</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="{{ url_for('static', filename='/scripts/script.js') }}"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var emailInput = document.getElementById('email');
+        var passwordInput = document.getElementById('password');
+        var loginEmailInput = document.getElementById('login-email');
+        var loginPasswordInput = document.getElementById('login-password');
+        var registerForm = document.getElementById('register-form');
+        var loginForm = document.getElementById('login-form');
+
+        emailInput.addEventListener('input', validateEmail);
+        passwordInput.addEventListener('input', validatePassword);
+        loginEmailInput.addEventListener('input', validateLoginEmail);
+        loginPasswordInput.addEventListener('input', validateLoginPassword);
+
+        registerForm.addEventListener('submit', function(event) {
+            if (!validatePasswordLength()) {
+                event.preventDefault();
+            }
+        });
+
+        loginForm.addEventListener('submit', function(event) {
+            if (!validateLoginPasswordLength() || !validateLoginEmail()) {
+                event.preventDefault();
+            }
+        });
+
+        function validateEmail() {
+            var email = emailInput.value.trim();
+            var emailError = document.getElementById('email-error');
+
+            if (!email) {
+                emailError.textContent = 'E-posta adresi boş olamaz';
+            } else {
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    emailError.textContent = 'Geçerli bir e-posta adresi girin';
+                } else {
+                    emailError.textContent = '';
+                }
+            }
+        }
+
+        function validatePassword() {
+            var password = passwordInput.value.trim();
+            var passwordError = document.getElementById('password-error');
+
+            if (!password) {
+                passwordError.textContent = 'Şifre boş olamaz';
+            } else if (password.length < 8) {
+                passwordError.textContent = 'Şifre en az 8 karakter olmalıdır';
+            } else {
+                passwordError.textContent = '';
+            }
+        }
+
+        function validateLoginEmail() {
+            var email = loginEmailInput.value.trim();
+            var emailError = document.getElementById('login-email-error');
+
+            if (!email) {
+                emailError.textContent = 'E-posta adresi boş olamaz';
+                return false;
+            } else {
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    emailError.textContent = 'Geçerli bir e-posta adresi girin';
+                    return false;
+                } else {
+                    emailError.textContent = '';
+                    return true;
+                }
+            }
+        }
+
+        function validateLoginPassword() {
+            var password = loginPasswordInput.value.trim();
+            var passwordError = document.getElementById('login-password-error');
+
+            if (!password) {
+                passwordError.textContent = 'Şifre boş olamaz';
+                return false;
+            } else if (password.length < 8) {
+                passwordError.textContent = 'Şifre en az 8 karakter olmalıdır';
+                return false;
+            } else {
+                passwordError.textContent = '';
+                return true;
+            }
+        }
+
+        function validatePasswordLength() {
+            var password = passwordInput.value.trim();
+            var passwordError = document.getElementById('password-error');
+
+            if (password.length < 8) {
+                passwordError.textContent = 'Şifre en az 8 karakter olmalıdır';
+                return false;
+            } else {
+                passwordError.textContent = '';
+                return true;
+            }
+        }
+
+        function validateLoginPasswordLength() {
+            var password = loginPasswordInput.value.trim();
+            var passwordError = document.getElementById('login-password-error');
+
+            if (password.length < 8) {
+                passwordError.textContent = 'Şifre en az 8 karakter olmalıdır';
+                return false;
+            } else {
+                passwordError.textContent = '';
+                return true;
+            }
+        }
+    });
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>CLOUDRILE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/assets/css/bootstrap-icons.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/assets/css/styles_main.css') }}">
+    <link rel="shortcut icon"  type="image/x-icon"  href="\static\assets\images\cloud_14412 (1).ico" >
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+</head>
+<body>
+<style>
+    .hide {
+        display: none;
+    }
+
+    .class_46:hover {
+        background-color: rgb(125, 125, 125);
+        color: white;
+    }
+
+    .drop-zone:hover {
+        background-color: #ccc;
+        border: dotted 4px red;
+    }
+
+    .drop-zone {
+        height: 200px;
+        border: dotted 4px #444;
+        border-radius: 10px;
+        background-color: #eee;
+        margin: 10px;
+        padding: 10px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .drop-zone-highlight {
+        background-color: #eed5d5;
+    }
+</style>
+<div class="class_1">
+
+    <div class="class_4">
+        <h1 class="class_5">
+            CLOUDRELI
+        </h1>
+    </div>
+    <div class="class_7">
+        <img src="{{avatar_url}}" class="class_8">
+        <div class="class_9">
+            <span class="username">{{ username }}</span> <a class="class_52" href="{{ url_for('logout')}}"
+                                                            onclick="table.logout()"
+                                                            style="text-decoration: none; color: white;">Çıkış</a>
+        </div>
+    </div>
+</div>
+<div class="class_10">
+    <div class="class_11">
+<button onclick="show_new_folder()" class="class_12" style="background: transparent; border: none; font-size: inherit;">
+     &nbsp;
+</button>
+
+        <div class="class_13">
+            <div class="class_9">
+                Depolama Alanı
+            </div>
+            <div class="class_14">
+                <div class="js-drive-space-percent class_15" style="{{ 'width: {}%'.format(current_space_as_percent) }}"></div>
+                <div class="percentile"></div>
+            </div>
+            <div class="js-drive-space-text class_9">
+                 {{ '%0.2f'|format(current_space/1000000) }} MB / {{ max_space/1000000 }} MB
+            </div>
+        </div>
+        <div id="MY DRIVE" onclick="mode.set(this.id);table.change_folder_by_id(0)" class="class_16">
+            <a href="{{ url_for('home') }}" class="bi bi-cloud-arrow-up-fill class_17">
+                <span>
+                    Drive'ım
+                </span></a>
+
+        </div>
+        <div id="TRASH" onclick="mode.set(this.id)" class="class_18">
+            <a href="{{ url_for('thrashs') }}" class="bi bi-trash3-fill class_17">
+                <span>
+                    Çöp Kutusu
+                </span> </a>
+
+        </div>
+    </div>
+    <div class="class_22">
+        <div id="breadcrumbs" class="class_23">
+
+        </div>
+        <h1 class="js-mode-title class_27">
+            Çöp Kutusu
+        </h1>
+             <style>
+                th {
+                  text-align: left;
+                   }
+            </style>
+        <div class="class_28">
+            <table oncontextmenu="submenu.show(event)" class="item_class_0 class_29" style="font-size:13px">
+                <thead>
+
+                <tr>
+                    <th scope="col">
+                        #
+                    </th>
+                    <th>
+                        Klasör Adı
+                    </th>
+                    <th scope="col">
+                        Dosya Tipi
+                    </th>
+
+                    <th scope="col">
+                        Güncellenme Tarihi
+                    </th>
+                    <th scope="col">
+                        Dosya Boyutu
+                    </th>
+                    <th scope="col">
+
+                    </th>
+                </tr>
+                {% for folder in folders %}
+                <tr>
+                    <td>
+                        {% if folder[7] %}
+                        <a href="{{ url_for('move_trash', folder_id=folder_id) }}" style="color: #16a095;">
+                            <i class="fa-solid fa-folder"></i>
+                        </a>
+
+                        {% else %}
+
+                        {% endif %}
+                    </td>
+                    <td>{{ folder[1] }}</td>
+                    <td>{{ folder[7] }}</td>
+                    <td>{{ folder[2] }}</td>
+                    <td>{% if folder[6] is none %}
+                         0 MB
+                         {% else %}
+                         {{ '%0.2f'|format(folder[6]/1000000) }} MB
+                          {% endif %}
+                    </td>
+                    <td class="icon-cell">
+                        <!-- Eğer kullanıcı silme işlemini onaylarsa thrash fonksiyonunu çağır
+                             İptal ederse hiçbir şey yapma -->
+                        <a href="javascript:void(0);" class="fa-regular fa-trash-can" style="color: #16a095;"
+                           onclick="confirmDelete('{{ folder[4] }}')"></a>
+
+                    </td>
+                </tr>
+
+                <script>
+                    function confirmDelete(binID) {
+                        var result = confirm("Emin misin?");
+
+                        if (result) {
+                            // Kullanıcı OK düğmesine tıkladı, silme işlemi yapabilirsiniz
+                            window.location.href = "{{ url_for('remove', bin_id='') }}" + binID;
+
+                        } else {
+                            // Kullanıcı İptal düğmesine tıkladı, hiçbir şey yapmayabilirsiniz
+                        }
+                    }
+                </script>
+
+                {% endfor %}
+
+                {% for file in files %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('delete_file', file_id=folder[5]) }}" style="color: #16a095;">
+                            <i class="fa-solid fa-folder"></i>
+                        </a>
+
+                    </td>
+                    <td>{{ file[1] }}</td>
+                    <td>{{ file[3] }}</td>
+                    <td>{{ file[6] }}</td>
+                    <td>{{ file[2]/1000000 }} MB </td>
+                    <td class="icon-cell">
+                        <!-- Eğer kullanıcı silme işlemini onaylarsa thrash fonksiyonunu çağır
+                             İptal ederse hiçbir şey yapma -->
+                        <a href="javascript:void(0);" class="fa-regular fa-trash-can" style="color: #16a095;"
+                           onclick="confirmDeleteFile('{{ file[4] }}')"></a>
+
+                    </td>
+                </tr>
+
+                 <script>
+                    function confirmDeleteFile(binID) {
+                        var result = confirm("Emin misin?");
+
+                        if (result) {
+                            // Kullanıcı OK düğmesine tıkladı, silme işlemi yapabilirsiniz
+                            window.location.href = "{{ url_for('remove', bin_id='') }}" + binID;
+                        } else {
+                            // Kullanıcı İptal düğmesine tıkladı, hiçbir şey yapmayabilirsiniz
+                        }
+                    }
+                </script>
+
+                {% endfor %}
+
+                </thead>
+
+                <tbody id="table-body" ondblclick="table.change_folder(event)" onclick="table.select(event)">
+
+                </tbody>
+            </table>
+        </div>
+        <div class="class_41" style="display: flex;">
+            <button onclick="table.prev()" class="class_42" style="min-width:100px">
+                Önceki
+            </button>
+            <span class="js-page-number" style="text-align:center;width: 100%;display: inline-block;">Sayfa 1</span>
+            <button onclick="table.next()" class="class_43" style="min-width:100px">
+                Sonraki
+            </button>
+            <div class="class_44">
+            </div>
+        </div>
+
+    </div>
+    <div class="class_47">
+        <div class="class_28">
+        </div>
+        <div class="js-file-info hide class_49">
+            <table class="item_class_2 class_50">
+
+                <tbody>
+                <tr>
+                    <th>
+                        Dosya:
+                    </th>
+                    <td class="file_name">
+
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        Tip:
+                    </th>
+
+                    <td class="type">
+
+                    </td>
+
+                </tr>
+                <tr>
+                    <th>
+                        Boyutu:
+                    </th>
+
+                    <td class="size">
+
+                    </td>
+
+                </tr>
+                <tr>
+                    <th>
+                        Eklenme Tarihi:
+                    </th>
+                    <td class="date_created">
+
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        Düzenlenme Tarihi:
+                    </th>
+                    <td class="date_updated">
+
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+    </div>
+</div>
+
+<!--modals-->
+<!--sub menu-->
+<div id="submenu" class="class_45 hide" style="position: absolute;">
+
+    <div onclick="table.preview_file()" class="js-preview-button class_46">
+        <i class="bi bi-eye class_17"></i>
+        <div class="class_9">
+            Preview
+        </div>
+    </div>
+    <div onclick="table.download_file()" class="js-download-button class_46">
+        <i class="bi bi-cloud-download-fill class_17"></i>
+        <div class="class_9">
+            Download
+        </div>
+    </div>
+    <div class="class_46">
+        <i class="bi bi-pencil-square class_17"></i>
+        <div class="class_9">
+            Edit
+        </div>
+    </div>
+    <div class="class_46">
+        <i class="bi bi-folder-x class_17"></i>
+        <div class="class_9">
+            Move
+        </div>
+    </div>
+    <div onclick="table.delete_row()" class="class_46">
+        <i class="bi bi-trash3-fill class_17"></i>
+        <div class="class_9">
+            Delete
+        </div>
+    </div>
+    <div onclick="table.restore_row()" class="js-restore-button class_46">
+        <i class="bi bi-arrow-counterclockwise class_17"></i>
+        <div class="class_9">
+            Restore
+        </div>
+    </div>
+
+    <div class="class_46" onclick="action.show_share_file()">
+        <i class="bi bi-share-fill class_17"></i>
+        <div class="class_9">
+            Share
+        </div>
+    </div>
+    <div onclick="table.add_to_favorites()" class="js-favorites-button class_46">
+        <i class="bi bi-star-fill class_17"></i>
+        <div class="js-favorites-text class_9">
+            Add to favorites
+        </div>
+    </div>
+</div>
+<!--end sub menu-->
+
+
+
+<!--end modals-->
+
+<script src="{{ url_for('static', filename='/assets/js/drag_n_drop.js') }}"></script>
+<script src="{{ url_for('static', filename='/assets/js/actions.js') }}"></script>
+<script src="{{ url_for('static', filename='/assets/js/table.js') }}"></script>
+<script src="{{ url_for('static', filename='/assets/js/mode.js') }}"></script>
+<script src="{{ url_for('static', filename='/assets/js/submenu.js') }}"></script>
+</body>
+</html>
